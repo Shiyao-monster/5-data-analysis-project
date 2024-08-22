@@ -1,0 +1,41 @@
+FROM databricksruntime/standard:14.3
+
+RUN apt-get update && apt-get install -y \
+    software-properties-common \
+    dirmngr \
+    gnupg2 \
+    curl \
+    build-essential \
+    libssl-dev \
+    zlib1g-dev \
+    libbz2-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    wget \
+    libncursesw5-dev \
+    libgdbm-dev \
+    libc6-dev \
+    liblzma-dev \
+    libffi-dev \
+    uuid-dev \
+    libxml2-dev
+
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E084DAB9 \
+    && add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran35/"
+
+RUN apt-get update && apt-get install -y r-base=3.6.3-1bionic
+
+RUN add-apt-repository ppa:deadsnakes/ppa \
+    && apt-get update \
+    && apt-get install -y python3.8 python3.8-dev python3.8-venv
+
+RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 1 \
+    && update-alternatives --config python3
+
+RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py \
+    && python3 get-pip.py \
+    && rm get-pip.py
+
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+RUN R --version && python3 --version && pip --version
