@@ -1,3 +1,21 @@
+# Install required tools and ODBC driver
+RUN apt-get update && \
+    apt-get install -y apt-transport-https ca-certificates curl gnupg && \
+    curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - && \
+    curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list > /etc/apt/sources.list.d/mssql-release.list && \
+    apt-get update && \
+    ACCEPT_EULA=Y apt-get install -y msodbcsql18 mssql-tools18 unixodbc-dev && \
+    apt-get install -y libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev && \
+    apt-get install -y r-cran-devtools && \
+    rm -rf /var/lib/apt/lists/*
+
+
+
+
+
+
+
+
 FROM databricksruntime/standard:14.3
 
 RUN apt-get update && apt-get install -y \
