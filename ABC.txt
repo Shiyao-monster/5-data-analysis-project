@@ -1,3 +1,59 @@
+
+
+import ray
+import asyncio
+import time
+
+# Initialize Ray
+ray.init()
+
+class ClassA:
+    def __init__(self, num_batches=500):
+        self.num_batches = num_batches
+
+    # IO-bound task (asynchronous)
+    async def io_bound_task(self, batch_id):
+        print(f"Starting IO-bound task for batch {batch_id}")
+        await asyncio.sleep(1)  # Simulate an async IO task
+        print(f"Completed IO-bound task for batch {batch_id}")
+        return batch_id
+
+    # CPU-bound task (synchronous, to be run in Ray actor)
+    def cpu_bound_task(self, batch_id):
+        print(f"Starting CPU-bound task for batch {batch_id}")
+        time.sleep(1)  # Simulate a CPU-bound computation task
+        print(f"Completed CPU-bound task for batch {batch_id}")
+        return f"Batch {batch_id} processed"
+
+    # Actor to handle CPU-bound tasks
+    @ray.remote
+    class CPUWorker:
+        def process(self, batch_id):
+            return ClassA().cpu_bound_task(batch_id)
+
+    # Main function to process batches
+    async def process_batches(self):
+        # Create one IO-bound worker and seven CPU-bound workers
+        cpu_workers = [self.CPUWorker.remote() for _ in range(7)]
+
+        for batch_id in range(self.num_batches):
+            # Step 1: Handle IO-bound task asynchronously
+            batch_id = await self.io_bound_task(batch_id)
+
+            # Step 2: Handle CPU-bound task using available CPU worker
+            available_worker = cpu_workers[batch_id % 7]  # Select worker in a round-robin fashion
+            result = await available_worker.process.remote(batch_id)
+
+            print(ray.get(result))  # Get the result from CPU worker
+
+# Example of running the code
+if __name__ == "__main__":
+    class_a = ClassA()
+    asyncio.run(class_a.process_batches())
+
+
+
+
 FROM databricksruntime/standard:14.3
 
 RUN apt-get update && apt-get install -y \
