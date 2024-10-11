@@ -1,3 +1,35 @@
+import spark.implicits._
+import scala.collection.JavaConverters._
+import sys.process._
+
+// Function to execute a shell command to get /dev/shm info
+def getSharedMemoryInfo(): String = {
+  val shmInfo = "df -h /dev/shm".!!.trim
+  shmInfo
+}
+
+// Create a DataFrame to distribute the task to all worker nodes
+val procs = (1 to 1000).toDF().map(_ => {
+  val hostname = "hostname".!!.trim
+  val cpus = Runtime.getRuntime.availableProcessors
+  val memory = getSharedMemoryInfo()
+  (hostname, cpus, memory)
+}).collectAsList().asScala.toMap
+
+// Print shared memory info for each worker node
+procs.foreach { case (hostname, (cpus, memory)) =>
+  println(s"Hostname: $hostname")
+  println(s"CPUs: $cpus")
+  println(s"Shared Memory Info: $memory")
+}
+
+
+
+
+
+
+
+
 
 import java.lang.management.ManagementFactory
 import com.sun.management.OperatingSystemMXBean
