@@ -1,3 +1,29 @@
+
+import sys.process._
+import org.apache.spark.sql.SparkSession
+
+// Initialize the Spark session
+val spark = SparkSession.builder.appName("SharedMemoryCheck").getOrCreate()
+
+// Function to retrieve /dev/shm info
+def getSharedMemoryInfo(): String = {
+  val shmInfo = "df -h /dev/shm".!!.trim // Run the shell command to get shared memory info
+  shmInfo
+}
+
+// Create an RDD with as many partitions as you have worker nodes
+val rdd = spark.sparkContext.parallelize(1 to spark.sparkContext.defaultParallelism, spark.sparkContext.defaultParallelism)
+
+// Run the shared memory check on each worker node
+val shmInfoRDD = rdd.mapPartitions(_ => Iterator(getSharedMemoryInfo())).collect()
+
+// Display shared memory info for each worker
+shmInfoRDD.zipWithIndex.foreach { case (info, idx) =>
+  println(s"Worker Node $idx Shared Memory Info:\n$info")
+}
+
+
+
 import spark.implicits._
 import scala.collection.JavaConverters._
 import sys.process._
