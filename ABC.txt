@@ -1,4 +1,26 @@
 
+from pyspark.sql import SparkSession
+import os
+
+# Initialize Spark session
+spark = SparkSession.builder.appName("SharedMemoryCheck").getOrCreate()
+
+# Function to execute on worker nodes
+def check_shared_memory(_):
+    shm_info = os.popen("df -h /dev/shm").read()
+    yield shm_info
+
+# Create an RDD to force worker execution (the number of partitions should correspond to your worker nodes)
+rdd = spark.sparkContext.parallelize(range(spark.sparkContext.defaultParallelism), spark.sparkContext.defaultParallelism)
+
+# Run the shared memory check on each partition (worker node)
+shm_info_rdd = rdd.mapPartitions(check_shared_memory).collect()
+
+# Print the shared memory info for each worker node
+for idx, shm_info in enumerate(shm_info_rdd):
+    print(f"Worker {idx} shared memory info:\n{shm_info}")
+
+
 
 import ray
 import asyncio
