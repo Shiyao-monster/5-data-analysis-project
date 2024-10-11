@@ -1,4 +1,29 @@
 
+import java.lang.management.ManagementFactory
+import com.sun.management.OperatingSystemMXBean
+import spark.implicits._
+import scala.collection.JavaConverters._
+import sys.process._
+
+val procs = (1 to 1000).toDF().map(_ => {
+  val hostname = "hostname".!!.trim
+  val cpus = Runtime.getRuntime.availableProcessors
+  val osBean = ManagementFactory.getPlatformMXBean(classOf[OperatingSystemMXBean])
+  val memory = osBean.getTotalPhysicalMemorySize() / (1024 * 1024) // Memory in MB
+  (hostname, cpus, memory)
+}).collectAsList().asScala.toMap
+
+val workerNodeCpus = procs.values.map(_._2).sum
+val workerNodeMemory = procs.values.map(_._3).sum
+
+println(s"Worker Node CPUs: $workerNodeCpus")
+println(s"Worker Node Memory: $workerNodeMemory MB")
+
+
+
+
+
+
 from pyspark.sql import SparkSession
 import os
 
