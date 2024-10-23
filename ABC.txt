@@ -1,3 +1,30 @@
+import re
+
+def sum_time_values(text):
+    # Regular expression to match "I/O batch {batch_number} time: {time_value}"
+    time_pattern = r'I/O batch \d+ time: (\d+(\.\d+)?)'
+    
+    # Find all time values using regex
+    time_values = re.findall(time_pattern, text)
+    
+    # Sum up the time values
+    total_time = sum(float(time_value[0]) for time_value in time_values)
+    
+    return total_time
+
+# Example usage
+massive_text = """
+    Some log text I/O batch 1 time: 2.34 more log text
+    Another line I/O batch 2 time: 5.67 additional info
+    Yet another log I/O batch 3 time: 1.23 end of line
+"""
+total_time = sum_time_values(massive_text)
+print(f"Total time: {total_time} seconds")
+
+
+
+
+
 
 import sys.process._
 import org.apache.spark.sql.SparkSession
