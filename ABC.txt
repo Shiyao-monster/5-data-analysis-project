@@ -1,3 +1,46 @@
+
+import ray
+from ray.util.actor_pool import ActorPool
+
+ray.init()
+
+# Step 1: Create a placement group with a spread strategy and 5 CPUs per bundle
+placement_group = ray.util.placement_group(
+    [{"CPU": 5} for _ in range(6)], strategy="SPREAD"
+)
+
+# Wait until the placement group is ready
+ray.get(placement_group.ready())
+
+# Step 2: Define your actor class
+@ray.remote
+class TaskProcessor:
+    def process(self, data):
+        # Replace with your actual processing logic
+        return f"Processed {data}"
+
+# Step 3: Create actors within the placement group
+actors = [
+    TaskProcessor.options(placement_group=placement_group).remote() for _ in range(30)
+]
+
+# Step 4: Initialize an ActorPool with the created actors
+actor_pool = ActorPool(actors)
+
+# Step 5: Use the ActorPool to map tasks across the actors
+tasks = list(range(30))  # Example tasks
+
+# Submit tasks to the pool
+results = actor_pool.map(lambda a, v: a.process.remote(v), tasks)
+
+# Collect results
+for result in results:
+    print(result)
+
+
+
+
+
 import re
 
 def sum_time_values(text):
