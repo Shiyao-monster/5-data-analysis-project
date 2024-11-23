@@ -1,3 +1,20 @@
+
+
+
+# Load external library within spark_apply
+result <- sdf %>%
+  spark_apply(
+    function(df) {
+      library(dplyr)
+      df %>% mutate(salary_with_bonus = salary * 1.2)
+    }
+  )
+
+result %>% collect()
+
+
+
+
 # Load required libraries
 library(sparklyr)
 library(dplyr)
