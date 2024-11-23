@@ -1,6 +1,21 @@
 
 
 
+# Sample DataFrame
+df <- data.frame(name = c("Alice", "Bob", "Alice"), salary = c(3000, 4000, 3500))
+sdf <- copy_to(sc, df, overwrite = TRUE)
+
+# Group by name and calculate mean salary
+result <- sdf %>%
+  group_by(name) %>%
+  spark_apply(function(df) {
+    data.frame(mean_salary = mean(df$salary))
+  })
+
+# Collect and display the result
+result %>% collect()
+
+
 # Load external library within spark_apply
 result <- sdf %>%
   spark_apply(
