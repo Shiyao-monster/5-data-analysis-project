@@ -1,3 +1,43 @@
+# Load required libraries
+library(sparklyr)
+library(dplyr)
+
+# Connect to a local Spark instance
+sc <- spark_connect(master = "local")
+
+# Create a sample data frame in R
+r_data <- data.frame(
+  id = 1:10,
+  value = c(10, 15, 20, 25, 30, 35, 40, 45, 50, 55)
+)
+
+# Copy the data to Spark
+spark_data <- sdf_copy_to(sc, r_data, overwrite = TRUE)
+
+# Define a custom R function to be applied
+custom_function <- function(df) {
+  df$value_squared <- df$value^2
+  df
+}
+
+# Use spark_apply to apply the custom function to the Spark DataFrame
+transformed_data <- spark_apply(
+  spark_data,
+  function(df) custom_function(df),
+  columns = c("id" = "integer", "value" = "integer", "value_squared" = "double")
+)
+
+# Collect the transformed data back to R
+result <- transformed_data %>% collect()
+
+# Print the result
+print(result)
+
+# Disconnect from Spark
+spark_disconnect(sc)
+
+
+
 
 import ray
 from ray.util.actor_pool import ActorPool
